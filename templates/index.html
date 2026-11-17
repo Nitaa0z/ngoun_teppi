@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngoun Teppi Phone Shop</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Ngoun Teppi</h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Must have id="user-role-text" -->
+            <span id="user-role-text" style="font-size: 0.9rem; font-weight: 500;">Role: Guest</span>
+            
+            <!-- Must have id="admin-login-btn" -->
+            <button id="admin-login-btn" onclick="promptAdminLogin()" style="background: rgba(255,255,255,0.2); color: white; padding: 0.45rem 0.9rem; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); cursor: pointer;">Admin Login</button>
+
+            <!-- Admin Login Box (Shows when clicking Admin Login button) -->
+            <div id="admin-login-modal" style="display: none; margin: 1rem 0; padding: 1rem; background: #f1f5f9; border-radius: 8px; max-width: 300px;">
+                <input type="password" id="admin-password-input" placeholder="Enter Admin Password" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <button onclick="submitAdminLogin()" style="width: 100%; background: #2563eb; color: white; border: none; padding: 0.5rem; border-radius: 4px; font-weight: 600;">Login</button>
+            </div>
+            
+            <!-- Must have id="add-phone-btn" -->
+            <button id="add-phone-btn" onclick="openAddProductModal()" style="background: #10b981; color: white; padding: 0.5rem 1rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; display: none;">+ Add New Phone</button>
+            
+            <!-- Must have id="admin-logout-btn" -->
+            <button id="admin-logout-btn" onclick="logoutAdmin()" style="background: #ef4444; color: white; padding: 0.45rem 0.9rem; font-size: 0.85rem; border-radius: 6px; border: none; cursor: pointer; display: none;">Logout</button>
+        </div>
+        <div id="admin-jump-container" style="display: none; margin: 1rem 0;">
+            <a href="#customer-orders" style="background: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ↓ Jump to Customer Orders
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Storefront Layout -->
+    <div class="main-container">
+        
+        <!-- Sidebar Filters -->
+        <aside class="filters">
+            <h2>🔍 Filter Phones</h2>
+            
+            <label for="search-input">Search Model:</label>
+            <input type="text" id="search-input" oninput="filterProducts()" placeholder="e.g. iPhone 13...">
+
+            <label for="storage-input">Storage:</label>
+            <input type="text" id="storage-input" oninput="filterProducts()" placeholder="e.g. 128GB...">
+
+            <label for="ram-filter">RAM Filter:</label>
+            <select id="ram-filter" onchange="filterProducts()">
+                <option value="">All RAM</option>
+                <option value="4">4GB</option>
+                <option value="6">6GB</option>
+                <option value="8">8GB</option>
+                <option value="12">12GB</option>
+            </select>
+
+            <label for="price-filter">Max Price ($):</label>
+            <select id="price-filter" onchange="filterProducts()">
+                <option value="">Any Price</option>
+                <option value="300">Under $300</option>
+                <option value="500">Under $500</option>
+                <option value="800">Under $800</option>
+                <option value="1000">Under $1,000</option>
+            </select>
+        </aside>
+
+        <!-- Product Grid Area -->
+        <main>
+            <h2 style="margin-bottom: 1rem; color: #1e293b; font-size: 1.25rem;">Available Phones</h2>
+            <div id="product-grid" class="product-grid">
+                <!-- Phone cards will be dynamically loaded here by script.js -->
+            </div>
+        </main>
+    </div>
+
+    <section id="customer-orders" style="display: none; margin-top: 2rem; padding: 0 1rem;">
+        <h2>Customer Reservations & Orders</h2>
+        <div class="table-wrapper" style="overflow-x: auto; margin-top: 1rem; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <table style="width: 100%; border-collapse: collapse; min-width: 650px; text-align: left;">
+                <thead>
+                    <tr style="background: #f8fafc; color: #334155; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 0.75rem 1rem;">Customer Name</th>
+                        <th style="padding: 0.75rem 1rem;">Phone</th>
+                        <th style="padding: 0.75rem 1rem;">Order Type</th>
+                        <th style="padding: 0.75rem 1rem;">Address</th>
+                        <th style="padding: 0.75rem 1rem;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-table-body">
+                    <!-- Dynamic orders appear here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 1. Customer Order / Reservation Modal -->
+    <div id="order-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="modal-phone-title">Reserve Phone</h3>
+            <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Secure your phone with a $15 deposit reservation.</p>
+            
+            <form id="order-form" onsubmit="submitOrder(event)">
+                <input type="hidden" id="modal-product-id">
+
+                <label>Your Name:</label>
+                <input type="text" id="customer-name" required placeholder="Enter your full name">
+
+                <label>Phone Number:</label>
+                <input type="text" id="customer-phone" required placeholder="e.g. 012 345 678">
+
+                <label>Order Type:</label>
+                <select id="order-type" onchange="toggleAddressField()">
+                    <option value="Store Pickup">Store Pickup</option>
+                    <option value="Delivery">Delivery</option>
+                </select>
+
+                <div id="address-container" style="display: none;">
+                    <label>Delivery Address:</label>
+                    <textarea id="delivery-address" rows="2" placeholder="Enter your delivery street / building"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeOrderModal()">Cancel</button>
+                    <button type="submit">Confirm Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Admin Add Product Modal -->
+    <div id="add-product-modal" class="modal-backdrop">
+        <div class="modal-content" style="width: 480px;">
+            <h3>Add New Phone to Inventory</h3>
+            <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Fill in phone specifications and upload a photo.</p>
+            
+            <form id="add-product-form" onsubmit="submitNewProduct(event)">
+                <label>Brand:</label>
+                <input type="text" id="new-brand" required placeholder="e.g. iPhone, Samsung">
+                
+                <label>Model:</label>
+                <input type="text" id="new-model" required placeholder="e.g. 13 Pro Max">
+                
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label>RAM:</label>
+                        <input type="text" id="new-ram" required placeholder="e.g. 6GB">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Storage:</label>
+                        <input type="text" id="new-storage" required placeholder="e.g. 128GB">
+                    </div>
+                </div>
+
+                <label>Price ($):</label>
+                <input type="number" step="0.01" id="new-price" required placeholder="450">
+
+                <label>Condition Notes:</label>
+                <input type="text" id="new-condition" required placeholder="e.g. 98% like new, minor scratch">
+
+                <label>Phone Photo (Choose file or click here and press Ctrl+V):</label>
+                <input type="file" id="new-image-file" accept="image/*" style="padding: 0.4rem; background: #f8fafc;">
+                <div id="paste-status" style="font-size: 0.8rem; color: #16a34a; margin-top: 0.3rem; display: none;">✓ Image pasted from clipboard!</div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeAddProductModal()">Cancel</button>
+                    <button type="submit">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main JavaScript Link -->
+    <script src="/static/script.js?v=99"></script>
+</body>
+</html>
