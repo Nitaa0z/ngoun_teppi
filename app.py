@@ -14,7 +14,9 @@ def get_db_connection():
         user=os.environ.get("DB_USER"),
         password=os.environ.get("DB_PASS"),
         database=os.environ.get("DB_NAME"),
-        ssl_disabled=False
+        ssl_ca="<CA_PATH>", # Standard Render Linux path for SSL certs
+        ssl_verify_cert=True
+        ssl_verify_identity = True
     )
 
 # 1. Route to serve the main frontend website
