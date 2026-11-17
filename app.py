@@ -7,6 +7,16 @@ import time
 app = Flask(__name__)
 app.secret_key = 'Alexmey099_Super_Secret_Key_2026!'  # <--- Add this line here!
 
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.environ.get("DB_HOST"),
+        port=int(os.environ.get("DB_PORT", 4000)),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASS"),
+        database=os.environ.get("DB_NAME"),
+        ssl_disabled=False
+    )
+
 # Connect to your local MySQL database
 def get_db_connection():
     return mysql.connector.connect(
