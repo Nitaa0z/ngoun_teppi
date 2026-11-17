@@ -17,15 +17,6 @@ def get_db_connection():
         ssl_disabled=False
     )
 
-# Connect to your local MySQL database
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",         # Usually "root"
-        password="12345",  # Put your Workbench password here (leave as "" if you have no password)
-        database="auntie_phone_store"
-    )
-
 # 1. Route to serve the main frontend website
 @app.route('/')
 def home():
