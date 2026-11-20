@@ -374,6 +374,7 @@ window.submitNewProduct = async function (event) {
     }
 };
 
+console.log("SCRIPT_JS_LOADED");
 window.promptAdminLogin = function () {
     const loginModal = document.getElementById('admin-login-modal');
     if (loginModal) {
