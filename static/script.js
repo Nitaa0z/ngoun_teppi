@@ -272,8 +272,11 @@ function openOrderModal(productId, productName) {
 }
 
 window.openAddProductModal = function () {
-  const modal = document.getElementById("addProductModal");
-  if (modal) {
-    modal.style.display = "block";
+  const modal = document.getElementById("add-product-modal");
+  if (!modal) {
+    console.warn("Modal #add-product-modal not found");
+    return;
   }
+  modal.style.display = "flex";
+  modal.classList.add("active", "open", "show");
 };
