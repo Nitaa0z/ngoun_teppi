@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 import mysql.connector
 import os
 from werkzeug.utils import secure_filename
@@ -238,6 +238,13 @@ def delete_product(product_id):
     except Exception as e:
         print("Error deleting product:", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'favicon.png'
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
