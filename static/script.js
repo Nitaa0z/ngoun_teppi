@@ -280,3 +280,23 @@ window.openAddProductModal = function () {
   modal.style.display = "flex";
   modal.classList.add("active", "open", "show");
 };
+
+const addForm = document.getElementById("addProductForm");
+if (addForm) {
+  addForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const formData = new FormData(addForm);
+    const res = await fetch("/api/products", {
+      method: "POST",
+      body: formData,
+      credentials: "same-origin"
+    });
+    if (res.ok) {
+      addForm.reset();
+      document.getElementById("add-product-modal").style.display = "none";
+      if (typeof loadProducts === "function") {
+        loadProducts();
+      }
+    }
+  });
+}
