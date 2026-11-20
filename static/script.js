@@ -336,3 +336,40 @@ async function markOrderCompleted(orderId) {
 function openOrderModal(productId, productName) {
     // Hook up your customer order form/modal logic here
 }
+
+window.submitNewProduct = async function (event) {
+    event.preventDefault();
+    const addForm = document.getElementById("add-product-form");
+    if (!addForm) return;
+
+    const formData = new FormData(addForm);
+    const submitBtn = addForm.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        const res = await fetch("/api/products", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin"
+        });
+
+        if (res.ok) {
+            addForm.reset();
+            if (typeof window.closeAddProductModal === "function") {
+                window.closeAddProductModal();
+            }
+            await fetchProducts();
+            if (isAdmin) {
+                showAdminPanel();
+            }
+        } else {
+            const errData = await res.json().catch(() => ({}));
+            alert(errData.error || `Failed to add phone (status ${res.status}).`);
+        }
+    } catch (err) {
+        console.error("Error adding product:", err);
+        alert("Network error while adding phone.");
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
+};
