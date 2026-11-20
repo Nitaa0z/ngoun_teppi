@@ -270,3 +270,10 @@ async function markOrderCompleted(orderId) {
 function openOrderModal(productId, productName) {
     // Hook up your customer order form/modal logic here
 }
+
+window.openAddProductModal = function () {
+  const modal = document.getElementById("addProductModal");
+  if (modal) {
+    modal.style.display = "block";
+  }
+};
