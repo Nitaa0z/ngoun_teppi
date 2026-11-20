@@ -373,3 +373,15 @@ window.submitNewProduct = async function (event) {
         if (submitBtn) submitBtn.disabled = false;
     }
 };
+
+window.promptAdminLogin = function () {
+    const loginModal = document.getElementById('admin-login-modal');
+    if (loginModal) {
+        loginModal.style.display = 'block';
+        const passwordInput = document.getElementById('admin-password-input');
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    }
+};
