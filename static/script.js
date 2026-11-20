@@ -6,11 +6,14 @@ let isAdmin = false;
 // ==========================================
 document.addEventListener("DOMContentLoaded", async () => {
     fetchProducts();
+    setupAddProductForm();
 
     try {
-        const response = await fetch('/api/admin/check');
+        const response = await fetch('/api/admin/check', {
+            credentials: 'same-origin'
+        });
         const data = await response.json();
-        
+
         if (data.logged_in || data.is_admin) {
             showAdminPanel();
         }
@@ -20,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// 2. ADMIN LOGIN HANDLING
+// 2. ADMIN LOGIN & LOGOUT HANDLING
 // ==========================================
 function promptAdminLogin() {
     const loginModal = document.getElementById('admin-login-modal');
@@ -37,21 +40,23 @@ function promptAdminLogin() {
 async function submitAdminLogin() {
     const passwordInput = document.getElementById('admin-password-input');
     const password = passwordInput ? passwordInput.value : '';
-    
+
     try {
         const response = await fetch('/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({ password: password })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success === true) {
-            document.getElementById('admin-login-modal').style.display = 'none';
+            const loginModal = document.getElementById('admin-login-modal');
+            if (loginModal) loginModal.style.display = 'none';
+
             showAdminPanel();
-            
-            // Update role label if it exists
+
             const roleDisplay = document.getElementById('role-display');
             if (roleDisplay) roleDisplay.innerText = 'Role: Admin';
         } else {
@@ -63,7 +68,6 @@ async function submitAdminLogin() {
     }
 }
 
-// 1. Update showAdminPanel() to set isAdmin = true and refresh the product grid
 function showAdminPanel() {
     isAdmin = true;
 
@@ -85,7 +89,6 @@ function showAdminPanel() {
     const ordersSection = document.getElementById('customer-orders');
     if (ordersSection) ordersSection.style.display = 'block';
 
-    // Re-render products so the Admin Delete buttons appear immediately
     fetchProducts();
 
     if (typeof fetchOrders === 'function') {
@@ -93,12 +96,14 @@ function showAdminPanel() {
     }
 }
 
-// 2. Update logoutAdmin() to set isAdmin = false and refresh the product grid
 async function logoutAdmin() {
     isAdmin = false;
 
     try {
-        await fetch('/api/admin/logout', { method: 'POST' });
+        await fetch('/api/admin/logout', {
+            method: 'POST',
+            credentials: 'same-origin'
+        });
     } catch (err) {
         console.error("Logout error:", err);
     }
@@ -121,25 +126,30 @@ async function logoutAdmin() {
     const ordersSection = document.getElementById('customer-orders');
     if (ordersSection) ordersSection.style.display = 'none';
 
-    // Re-render products so the Admin Delete buttons disappear immediately
     fetchProducts();
 }
 
-// 3. Update fetchProducts() to render the Delete button ONLY when isAdmin is true
+// ==========================================
+// 3. PRODUCTS & ADD PRODUCT MODAL
+// ==========================================
 async function fetchProducts() {
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', {
+            credentials: 'same-origin'
+        });
         const products = await response.json();
-        
+
         const productGrid = document.getElementById('product-grid');
         if (!productGrid) return;
 
         productGrid.innerHTML = '';
-        
+
         if (!Array.isArray(products) || products.length === 0) {
             productGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">No phones available right now.</p>';
             return;
         }
+
+        const fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Crect width='200' height='160' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
 
         products.forEach(product => {
             const brand = product.brand || product.manufacturer || '';
@@ -149,25 +159,24 @@ async function fetchProducts() {
             const phoneRam = product.ram || product.RAM || product.ram_size || 'N/A';
             const phoneStorage = product.storage || product.Storage || product.rom || 'N/A';
             const phonePrice = product.price || product.cost || product.amount || '0.00';
-            const imageUrl = product.image_url || product.image || product.img || 'https://via.placeholder.com/150?text=No+Image';
+            const imageUrl = product.image_url || product.image || product.img || fallbackImg;
 
-            // Only create the Delete button HTML if logged in as Admin
-            const adminDeleteButton = isAdmin 
-                ? `<button onclick="deleteProduct(${product.id}, '${phoneTitle.replace(/'/g, "\\'")}')" style="margin-top: 0.35rem; background: #ef4444; color: white; border: none; padding: 0.45rem; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+            const adminDeleteButton = isAdmin
+                ? `<button type="button" onclick="deleteProduct(${product.id}, '${phoneTitle.replace(/'/g, "\\'")}')" style="margin-top: 0.35rem; background: #ef4444; color: white; border: none; padding: 0.45rem; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
                        🗑️ Delete (Sold In-Store)
-                   </button>` 
+                   </button>`
                 : '';
 
             const card = document.createElement('div');
             card.className = 'product-card';
             card.style.cssText = 'background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 0.5rem;';
-            
+
             card.innerHTML = `
-                <img src="${imageUrl}" alt="${phoneTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; background: #f1f5f9;" onerror="this.src='https://via.placeholder.com/150?text=Phone'">
+                <img src="${imageUrl}" alt="${phoneTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; background: #f1f5f9;" onerror="this.onerror=null;this.src='${fallbackImg}'">
                 <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b;">${phoneTitle}</h3>
                 <p style="color: #64748b; font-size: 0.9rem; margin: 0;">RAM: ${phoneRam} | Storage: ${phoneStorage}</p>
                 <p style="font-weight: bold; color: #2563eb; font-size: 1.1rem; margin: 0;">$${phonePrice}</p>
-                <button onclick="openOrderModal(${product.id}, '${phoneTitle.replace(/'/g, "\\'")}')" style="margin-top: 0.5rem; background: #2563eb; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                <button type="button" onclick="openOrderModal(${product.id}, '${phoneTitle.replace(/'/g, "\\'")}')" style="margin-top: 0.5rem; background: #2563eb; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-weight: 600;">
                     Order
                 </button>
                 ${adminDeleteButton}
@@ -179,17 +188,72 @@ async function fetchProducts() {
     }
 }
 
-// 4. Function to manually delete a product when sold in-store
+window.openAddProductModal = function () {
+    const modal = document.getElementById("add-product-modal");
+    if (!modal) {
+        console.warn("Modal #add-product-modal not found");
+        return;
+    }
+    modal.style.display = "flex";
+    modal.classList.add("active", "open", "show");
+};
+
+window.closeAddProductModal = function () {
+    const modal = document.getElementById("add-product-modal");
+    if (!modal) return;
+    modal.style.display = "none";
+    modal.classList.remove("active", "open", "show");
+};
+
+function setupAddProductForm() {
+    const addForm = document.getElementById("addProductForm");
+    if (!addForm) return;
+
+    addForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(addForm);
+        const submitBtn = addForm.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+            const res = await fetch("/api/products", {
+                method: "POST",
+                body: formData,
+                credentials: "same-origin"
+            });
+
+            if (res.ok) {
+                addForm.reset();
+                window.closeAddProductModal();
+                await fetchProducts();
+                if (isAdmin) {
+                    showAdminPanel();
+                }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.error || `Failed to add phone (status ${res.status}).`);
+            }
+        } catch (err) {
+            console.error("Error adding product:", err);
+            alert("Network error while adding phone.");
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+}
+
 async function deleteProduct(productId, productName) {
     if (!confirm(`Delete "${productName}" from inventory? (Use this if sold directly in-store)`)) return;
 
     try {
         const response = await fetch(`/api/products/${productId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'same-origin'
         });
-        
+
         if (response.ok) {
-            fetchProducts(); // Instantly remove the card from the grid
+            fetchProducts();
         } else {
             alert("Failed to delete product. Make sure you are logged in as Admin.");
         }
@@ -204,9 +268,11 @@ async function deleteProduct(productId, productName) {
 // ==========================================
 async function fetchOrders() {
     try {
-        const response = await fetch('/api/orders');
+        const response = await fetch('/api/orders', {
+            credentials: 'same-origin'
+        });
         const orders = await response.json();
-        
+
         const tableBody = document.getElementById('orders-table-body');
         if (!tableBody) return;
 
@@ -232,7 +298,7 @@ async function fetchOrders() {
                 <td style="padding: 0.75rem 1rem;">${order.order_type || 'Reservation'}</td>
                 <td style="padding: 0.75rem 1rem;">${order.address || 'N/A'}</td>
                 <td style="padding: 0.75rem 1rem;">
-                    <button onclick="markOrderCompleted(${order.id})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <button type="button" onclick="markOrderCompleted(${order.id})" style="background: #16a34a; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
                         ✓ Mark Sold / Done
                     </button>
                 </td>
@@ -252,12 +318,13 @@ async function markOrderCompleted(orderId) {
 
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            credentials: 'same-origin'
         });
-        
+
         if (response.ok) {
-            fetchOrders();     
-            fetchProducts();   
+            fetchOrders();
+            fetchProducts();
         } else {
             alert("Failed to update order status.");
         }
@@ -266,37 +333,6 @@ async function markOrderCompleted(orderId) {
     }
 }
 
-// Placeholder for your order modal trigger if you use one
 function openOrderModal(productId, productName) {
     // Hook up your customer order form/modal logic here
-}
-
-window.openAddProductModal = function () {
-  const modal = document.getElementById("add-product-modal");
-  if (!modal) {
-    console.warn("Modal #add-product-modal not found");
-    return;
-  }
-  modal.style.display = "flex";
-  modal.classList.add("active", "open", "show");
-};
-
-const addForm = document.getElementById("addProductForm");
-if (addForm) {
-  addForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    const formData = new FormData(addForm);
-    const res = await fetch("/api/products", {
-      method: "POST",
-      body: formData,
-      credentials: "same-origin"
-    });
-    if (res.ok) {
-      addForm.reset();
-      document.getElementById("add-product-modal").style.display = "none";
-      if (typeof loadProducts === "function") {
-        loadProducts();
-      }
-    }
-  });
 }
