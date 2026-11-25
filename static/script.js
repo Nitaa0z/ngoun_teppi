@@ -155,19 +155,19 @@ function renderProducts(products) {
     const safeTitle = phoneTitle.replace(/'/g, "\\'");
 
     const adminDeleteButton = isAdmin
-      ? `<button type="button" onclick="deleteProduct(${product.id}, '${safeTitle}')" style="margin-top: 0.35rem; background: #ef4444; color: white; border: none; padding: 0.45rem; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">🗑️ Delete (Sold In-Store)</button>`
+      ? `<button type="button" onclick="deleteProduct(${product.id}, '${safeTitle}')" style="margin-top: 0.35rem; background: #f4f4f5; color: #b91c1c; border: 1px solid #fecaca; padding: 0.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Delete (Sold In-Store)</button>`
       : "";
 
     const card = document.createElement("div");
     card.className = "product-card";
     card.style.cssText =
-      "background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 0.5rem;";
+      "background: #ffffff; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.55rem;";
     card.innerHTML = `
-      <img src="${imageUrl}" alt="${phoneTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; background: #f1f5f9;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'">
-      <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b;">${phoneTitle}</h3>
-      <p style="color: #64748b; font-size: 0.9rem; margin: 0;">RAM: ${phoneRam} | Storage: ${phoneStorage}</p>
-      <p style="font-weight: bold; color: #2563eb; font-size: 1.1rem; margin: 0;">$${phonePrice}</p>
-      <button type="button" onclick="openOrderModal(${product.id}, '${safeTitle}')" style="margin-top: 0.5rem; background: #2563eb; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer; font-weight: 600;">Order</button>
+      <img src="${imageUrl}" alt="${phoneTitle}" style="width: 100%; height: 175px; object-fit: cover; border-radius: 8px; background: #f4f4f5; border: 1px solid #f4f4f5;" onerror="this.onerror=null;this.src='${FALLBACK_IMG}'">
+      <h3 style="margin: 0.25rem 0 0; font-size: 1.05rem; font-weight: 600; color: #09090b;">${phoneTitle}</h3>
+      <p style="color: #71717a; font-size: 0.85rem; margin: 0;">RAM: ${phoneRam} · Storage: ${phoneStorage}</p>
+      <p style="font-weight: 700; color: #18181b; font-size: 1.15rem; margin: 0.15rem 0;">$${phonePrice}</p>
+      <button type="button" onclick="openOrderModal(${product.id}, '${safeTitle}')" style="margin-top: auto; background: #18181b; color: #ffffff; border: none; padding: 0.6rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Reserve Phone</button>
       ${adminDeleteButton}
     `;
     productGrid.appendChild(card);
