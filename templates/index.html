@@ -106,6 +106,38 @@
                     <option value="Delivery">Delivery</option>
                 </select>
 
+                <div id="coordinates-container" style="margin-top: 0.75rem;">
+                    <label for="customer-lat">Your Coordinates (Latitude, Longitude):</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="customer-lat" name="customer_lat" placeholder="Latitude (e.g. 11.5621)" oninput="updateStoreRoutePreview()">
+                        <input type="text" id="customer-lng" name="customer_lng" placeholder="Longitude (e.g. 104.8885)" oninput="updateStoreRoutePreview()">
+                    </div>
+                    <button type="button" onclick="detectCustomerLocation()" style="margin-top: 0.45rem; background: #f4f4f5; color: #18181b; border: 1px solid #d4d4d8; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                        Use My Current Location
+                    </button>
+                </div>
+
+                <div id="store-pickup-map-box" style="display: none; margin-top: 0.85rem; padding: 0.75rem; background: #f4f4f5; border: 1px solid #d4d4d8; border-radius: 8px;">
+                    <p style="font-size: 0.82rem; font-weight: 600; color: #09090b; margin-bottom: 0.45rem;">Store Location &amp; Route to Store</p>
+                    <iframe
+                        id="store-map-frame"
+                        width="100%"
+                        height="190"
+                        style="border: 0; border-radius: 6px; background: #e4e4e7;"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="https://www.google.com/maps?q=11.5564,104.9282&z=15&output=embed">
+                    </iframe>
+                    <a
+                        id="google-maps-route-link"
+                        href="https://www.google.com/maps/dir/?api=1&destination=11.5564,104.9282&travelmode=driving"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="display: inline-block; margin-top: 0.5rem; font-size: 0.82rem; font-weight: 600; color: #09090b; text-decoration: underline;">
+                        Open Route from My Location to Store in Google Maps ↗
+                    </a>
+                </div>
+
                 <div id="address-container" style="display: none;">
                     <label for="delivery-address">Delivery Address:</label>
                     <textarea id="delivery-address" name="address" autocomplete="street-address" rows="2" placeholder="Enter your delivery street / building"></textarea>

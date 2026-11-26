@@ -4,6 +4,8 @@ let allProducts = [];
 const FALLBACK_IMG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='160'%3E%3Crect width='200' height='160' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
 
+const STORE_COORDS = { lat: 11.5564, lng: 104.9282 };
+
 document.addEventListener("DOMContentLoaded", async () => {
   setupClipboardPaste();
   await fetchProducts();
@@ -350,6 +352,7 @@ window.openOrderModal = function (productId, phoneTitle) {
     modal.style.display = "flex";
     modal.classList.add("active", "open", "show");
   }
+  window.toggleAddressField();
 };
 
 window.closeOrderModal = function () {
@@ -359,12 +362,56 @@ window.closeOrderModal = function () {
   modal.classList.remove("active", "open", "show");
 };
 
+window.detectCustomerLocation = function () {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser. You can type coordinates manually.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const latInput = document.getElementById("customer-lat");
+      const lngInput = document.getElementById("customer-lng");
+      if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
+      if (lngInput) lngInput.value = pos.coords.longitude.toFixed(6);
+      window.updateStoreRoutePreview();
+    },
+    () => {
+      alert("Could not get GPS location. Please enter latitude and longitude manually.");
+    }
+  );
+};
+
+window.updateStoreRoutePreview = function () {
+  const lat = (document.getElementById("customer-lat")?.value || "").trim();
+  const lng = (document.getElementById("customer-lng")?.value || "").trim();
+  const routeLink = document.getElementById("google-maps-route-link");
+  const mapFrame = document.getElementById("store-map-frame");
+
+  const dest = `${STORE_COORDS.lat},${STORE_COORDS.lng}`;
+  if (routeLink) {
+    routeLink.href = lat && lng
+      ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(`${lat},${lng}`)}&destination=${encodeURIComponent(dest)}&travelmode=driving`
+      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+  }
+
+  if (mapFrame) {
+    mapFrame.src = `https://www.google.com/maps?q=${encodeURIComponent(dest)}&z=15&output=embed`;
+  }
+};
+
 window.toggleAddressField = function () {
-  const orderType = document.getElementById("order-type")?.value;
+  const orderType = document.getElementById("order-type")?.value || "Store Pickup";
   const addressBox = document.getElementById("address-container");
+  const pickupMapBox = document.getElementById("store-pickup-map-box");
+
   if (addressBox) {
     addressBox.style.display = orderType === "Delivery" ? "block" : "none";
   }
+  if (pickupMapBox) {
+    pickupMapBox.style.display = orderType === "Store Pickup" ? "block" : "none";
+  }
+  window.updateStoreRoutePreview();
 };
 
 window.submitOrder = async function (event) {
@@ -375,6 +422,8 @@ window.submitOrder = async function (event) {
     customer_phone: document.getElementById("customer-phone")?.value,
     order_type: document.getElementById("order-type")?.value || "Store Pickup",
     delivery_address: document.getElementById("delivery-address")?.value || "Store Pickup",
+    customer_lat: document.getElementById("customer-lat")?.value || null,
+    customer_lng: document.getElementById("customer-lng")?.value || null,
   };
 
   try {

@@ -9,7 +9,8 @@ app.secret_key = os.environ.get("SECRET_KEY", "Alexmey099_Super_Secret_Key_2026!
 
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-
+STORE_LAT = 11.5564
+STORE_LNG = 104.9282
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -154,7 +155,9 @@ def create_order():
     customer_phone = data.get("customer_phone")
     order_type = data.get("order_type", "Store Pickup")
     delivery_address = data.get("delivery_address", "Store Pickup")
-
+    customer_lat = data.get("customer_lat")
+    customer_lng = data.get("customer_lng")
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -162,6 +165,8 @@ def create_order():
         columns_to_check = [
             "ALTER TABLE orders ADD COLUMN order_type VARCHAR(50)",
             "ALTER TABLE orders ADD COLUMN delivery_address TEXT",
+            "ALTER TABLE orders ADD COLUMN customer_lat DOUBLE NULL",
+            "ALTER TABLE orders ADD COLUMN customer_lng DOUBLE NULL",
             "ALTER TABLE orders ADD COLUMN total_price DECIMAL(10,2) DEFAULT 15.00",
             "ALTER TABLE orders ADD COLUMN deposit_amount DECIMAL(10,2) DEFAULT 15.00",
         ]
@@ -172,14 +177,34 @@ def create_order():
                 pass
 
         query = """
-            INSERT INTO orders (product_id, customer_name, customer_phone, order_type, delivery_address, total_price, deposit_amount)
-            VALUES (%s, %s, %s, %s, %s, 15.00, 15.00)
+            INSERT INTO orders (
+                product_id, customer_name, customer_phone, order_type,
+                delivery_address, customer_lat, customer_lng, total_price, deposit_amount
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 15.00, 15.00)
         """
-        cursor.execute(query, (product_id, customer_name, customer_phone, order_type, delivery_address))
+        cursor.execute(
+            query,
+            (
+                product_id,
+                customer_name,
+                customer_phone,
+                order_type,
+                delivery_address,
+                customer_lat,
+                customer_lng,
+            ),
+        )
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({"message": "Order placed successfully!"}), 201
+        return jsonify(
+            {
+                "message": "Order placed successfully!",
+                "store_lat": STORE_LAT,
+                "store_lng": STORE_LNG,
+            }
+        ), 201
     except Exception as e:
         print("Error creating order:", e)
         return jsonify({"error": "Failed to place order."}), 500
