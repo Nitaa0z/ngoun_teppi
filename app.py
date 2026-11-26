@@ -9,8 +9,8 @@ app.secret_key = os.environ.get("SECRET_KEY", "Alexmey099_Super_Secret_Key_2026!
 
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-STORE_LAT = 11.5564
-STORE_LNG = 104.9282
+STORE_LAT = 11.586605
+STORE_LNG = 104.909967
 
 def get_db_connection():
     return mysql.connector.connect(
